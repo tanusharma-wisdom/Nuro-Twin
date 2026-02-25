@@ -815,6 +815,8 @@
                 <h1>Cognitive Health Twin</h1>
                 <p>Real-time digital interface monitoring physiological data via ESP32 sensors.</p>
                 <button class="btn-connect" onclick="toggleDemoMode()" id="btn-main">Connect Hardware</button>
+                <button class="btn-connect" onclick="toggleSimulation()" id="btn-sim"
+                    style="margin-left: 10px; background: var(--secondary); color: white;">Start Simulation</button>
                 <div id="demo-disclaimer" class="disclaimer" style="opacity:0;">* Streaming live via WebSockets.</div>
                 <div style="margin-top: 30px;">
                     <h2>Live Vitals</h2>
@@ -974,6 +976,7 @@
 
                     <div id="ai-advanced-report-container"></div>
                     <div id="ai-recommendations-container">
+                        <!-- Recommendations will be dynamically inserted here -->
                         <div style="text-align: center; padding: 40px 20px; color: #666;">
                             <i class="fas fa-network-wired"
                                 style="font-size: 3em; margin-bottom: 20px; opacity: 0.5;"></i>
@@ -1108,8 +1111,8 @@
 
                 // Determine State
                 let newState = 'HEALTHY'; // > 80
-                if (score <= 50) newState = 'CRITICAL'; 
-                else if (score <= 80) newState = 'STRESSED'; 
+                if (score <= 50) newState = 'CRITICAL'; // <= 50 treated as critical/alert range
+                else if (score <= 80) newState = 'STRESSED'; // 51-80
 
                 // Only react on state change
                 if (newState !== this.lastState) {
@@ -1122,6 +1125,7 @@
                 let text = "";
                 switch (state) {
                     case 'HEALTHY':
+                        // "Optional affirmation or silence" - 30% chance
                         if (Math.random() > 0.7) {
                             text = "Your body is balanced and steady.";
                         }
@@ -2012,6 +2016,11 @@
             window.toggleDemoMode = function () {
                 const btn = document.getElementById('btn-main');
 
+                // 0. Stop simulation if active
+                if (isDemoActive) {
+                    stopSimulation();
+                }
+
                 // 1. If already connected, close it.
                 if (ws && ws.readyState === WebSocket.OPEN) {
                     ws.close();
@@ -2127,14 +2136,112 @@
 
 
             function updateUI() {
-                document.getElementById('dash-bpm').innerText = state.bpm;
-                document.getElementById('dash-spo2').innerText = state.spo2;
-                document.getElementById('dash-temp').innerText = state.temp;
-                document.getElementById('val-health').innerText = state.healthScore + "%";
-                const hVal = document.getElementById('val-health');
-                if (state.healthScore > 80) hVal.style.color = "var(--primary)";
-                else if (state.healthScore > 50) hVal.style.color = "var(--warning)";
-                else hVal.style.color = "var(--danger)";
+                if (document.getElementById('dash-bpm')) document.getElementById('dash-bpm').innerText = state.bpm;
+                if (document.getElementById('dash-spo2')) document.getElementById('dash-spo2').innerText = state.spo2;
+                if (document.getElementById('dash-temp')) document.getElementById('dash-temp').innerText = state.temp;
+                if (document.getElementById('val-health')) {
+                    const hVal = document.getElementById('val-health');
+                    hVal.innerText = state.healthScore + "%";
+                    if (state.healthScore > 80) hVal.style.color = "var(--primary)";
+                    else if (state.healthScore > 50) hVal.style.color = "var(--warning)";
+                    else hVal.style.color = "var(--danger)";
+                }
+            }
+
+            // --- SIMULATION LOGIC ---
+            window.toggleSimulation = function () {
+                if (isDemoActive) {
+                    stopSimulation();
+                } else {
+                    startSimulation();
+                }
+            };
+
+            function startSimulation() {
+                // Stop hardware connection if active
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+
+                const btn = document.getElementById('btn-sim');
+                btn.innerText = "Stop Simulation";
+                btn.style.background = "var(--danger)";
+
+                isDemoActive = true;
+
+                // Update Hardware Status Overlay
+                const hwDot = document.getElementById('hw-dot');
+                const hwText = document.getElementById('hw-text');
+                if (hwDot) {
+                    hwDot.style.background = 'var(--secondary)';
+                    hwText.textContent = 'SIMULATED DATA';
+                    hwText.style.color = 'var(--secondary)';
+                }
+
+                simInterval = setInterval(() => {
+                    // Generate realistic fake data
+                    state.bpm = Math.floor(65 + Math.random() * 25); // 65-90
+                    state.spo2 = Math.floor(96 + Math.random() * 4); // 96-99
+                    state.temp = (36.2 + Math.random() * 0.8).toFixed(1); // 36.2-37.0
+
+                    // Occasional "stress" spike (5% chance)
+                    if (Math.random() > 0.95) {
+                        state.bpm = Math.floor(105 + Math.random() * 20);
+                        state.spo2 = Math.floor(92 + Math.random() * 3);
+                    }
+
+                    // Calculate Health Score
+                    let score = 100;
+                    if (state.bpm > 110) score -= 30;
+                    if (state.spo2 < 95) score -= 20;
+                    if (state.temp > 37.2) score -= 10;
+                    state.healthScore = Math.max(0, Math.min(100, score));
+
+                    // Update UI
+                    updateUI();
+
+                    // Update Robot
+                    if (typeof updateAnimationBasedOnHealth === "function") {
+                        updateAnimationBasedOnHealth(state.healthScore);
+                    }
+
+                    // Update Charts
+                    if (typeof updateCharts === "function") {
+                        updateCharts(state.bpm, state.spo2, state.temp);
+                    }
+
+                    // Trigger AI
+                    if (typeof triggerRealAI === "function") {
+                        triggerRealAI(state.bpm, state.spo2, state.temp, state.healthScore);
+                    }
+
+                    // Update Voice
+                    if (voiceAssistant) {
+                        voiceAssistant.process(state.healthScore);
+                    }
+                }, 2000); // Update every 2 seconds
+
+                console.log("Simulation started");
+            }
+
+            function stopSimulation() {
+                clearInterval(simInterval);
+                isDemoActive = false;
+
+                const btn = document.getElementById('btn-sim');
+                btn.innerText = "Start Simulation";
+                btn.style.background = "var(--secondary)";
+
+                // Reset Status Overlay
+                const hwDot = document.getElementById('hw-dot');
+                const hwText = document.getElementById('hw-text');
+                if (hwDot) {
+                    hwDot.style.background = '#555';
+                    hwText.textContent = 'STANDBY';
+                    hwText.style.color = '#888';
+                }
+
+                console.log("Simulation stopped");
             }
 
             window.toggleVoice = function () {
@@ -2950,6 +3057,12 @@
                 setTimeout(initRealAI, 1000);
             }
         });
+
+        // Update WebSocket handler to use Real AI
+        // Replace your existing ws.onmessage handler with this:
+        // ============================================
+        // UPDATED WEBSOCKET HANDLER WITH REAL AI
+        // ============================================
 
         ws.onmessage = function (event) {
             try {
