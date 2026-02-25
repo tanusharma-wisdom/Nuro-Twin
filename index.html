@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NuroTwin | Digital Health Twin</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" href="favicon.jpeg" type="image/x-icon">
+    <style>
+        /* --- CSS VARIABLES --- */
+        :root {
+            --bg: #050505;
+            --surface: #0a0a0a;
+            --primary: #00F0FF;
+            /* Cyber Blue */
+            --secondary: #7c3aed;
+            /* Deep Purple */
+            --danger: #ef4444;
+            /* Warning Red */
+            --text: #ffffff;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Roboto', sans-serif;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        p {
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        /* --- NAVBAR --- */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(5, 5, 5, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-menu{
+             display: flex;
+             gap: 23px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            color: var(--primary);
+            font-weight: bold;
+            text-decoration: none;
+            z-index: 1001;
+            flex: 1;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            justify-content: center;
+            flex: 2;
+        }
+
+        .nav-links a {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: flex-end;
+            flex: 1;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: 0.3s;
+        }
+
+        .btn-ghost {
+            color: #fff;
+            border: 1px solid transparent;
+            padding: 0 3px;
+            font-size: 15px;
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--border);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
+        }
+
+        .hamburger {
+            display: none;
+            font-size: 1.5rem;
+            color: #fff;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 100px 10% 50px 10%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            z-index: 2;
+            max-width: 800px;
+            margin-top: 40px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #fff, #888);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero span {
+            color: var(--primary);
+            -webkit-text-fill-color: var(--primary);
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 1;
+            pointer-events: none;
+            mask-image: linear-gradient(to right, transparent 0%, black 100%);
+        }
+
+        /* --- SECTIONS COMMON --- */
+        section {
+            padding: 100px 10%;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            margin-bottom: 60px;
+            text-align: center;
+        }
+
+        .section-title span {
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 15px;
+        }
+
+        /* --- PROBLEM & SOLUTION --- */
+        .split-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .split-text h2 {
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .split-text h2.problem {
+            color: var(--danger);
+        }
+
+        .split-text h2.solution {
+            color: var(--primary);
+        }
+
+        .split-img {
+            width: 100%;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s;
+        }
+
+        .split-img:hover {
+            transform: scale(1.02);
+        }
+
+        /* --- FEATURES SECTION --- */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 20px;
+            transition: 0.3s;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--primary);
+        }
+
+        .feature-box i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .feature-box h3 {
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        /* --- ARCHITECTURE --- */
+        .arch-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .arch-card {
+            background: var(--surface);
+            padding: 30px 20px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            position: relative;
+            z-index: 2;
+            transition: 0.3s;
+        }
+
+        .arch-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+
+        .arch-card i {
+            font-size: 2.5rem;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .arch-card h4 {
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .arch-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--secondary), transparent);
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+
+        /* --- ROBOT CAROUSEL --- */
+        .robot-showcase {
+            background: #000;
+            text-align: center;
+            overflow: hidden;
+            padding: 100px 0;
+        }
+
+        .carousel-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow-x: scroll;
+            scroll-behavior: smooth;
+            display: flex;
+            gap: 40px;
+            padding: 50px 25vw;
+            scroll-snap-type: x mandatory;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .carousel-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+
+        .robot-card {
+            min-width: 60vw;
+            max-width: 800px;
+            aspect-ratio: 16/9;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 20px;
+            overflow: hidden;
+            scroll-snap-align: center;
+            position: relative;
+            transition: all 0.5s ease;
+            transform: scale(0.9);
+            opacity: 0.5;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .robot-card.active {
+            transform: scale(1);
+            opacity: 1;
+            border-color: var(--primary);
+            box-shadow: 0 0 50px rgba(0, 240, 255, 0.2);
+            z-index: 10;
+        }
+
+        .robot-card video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .robot-card .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 40px;
+            background: linear-gradient(to top, #000 0%, transparent 100%);
+            text-align: left;
+            opacity: 0;
+            transition: 0.5s;
+            transform: translateY(20px);
+        }
+
+        .robot-card.active .overlay {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .robot-card .label {
+            font-family: 'Orbitron';
+            font-size: 2rem;
+            margin-bottom: 5px;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        .robot-card .desc {
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        /* Carousel Controls */
+        .carousel-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            background: #333;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .dot.active {
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* --- FUTURE SCOPE --- */
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .timeline-item {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 15px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .timeline-item h3 {
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+
+
+        /* --- FOOTER --- */
+        footer {
+            padding: 60px 10%;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: #555;
+            background: #000;
+        }
+
+        /* --- MOBILE RESPONSIVENESS --- */
+        @media (min-width: 900px) {
+            .robot-card {
+                min-width: 700px;
+            }
+
+            .carousel-wrapper {
+                padding: 50px calc(50% - 350px);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .section-title span {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+        }
+
+        @media (max-width: 370px) {
+            .hero span {
+            font-size: 30px;
+        }
+        }
+
+        @media (max-width: 900px) {
+            .nav-container {
+                padding: 15px 20px;
+            }
+
+            .hamburger {
+                display: block;
+            }
+
+            .nav-menu {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 80%;
+                height: 100vh;
+                background: #000;
+                padding: 100px 30px;
+                transition: 0.4s ease;
+                display: flex;
+                flex-direction: column;
+                gap: 30px;
+                border-left: 1px solid var(--border);
+                z-index: 1000;
+            }
+
+            .nav-menu.active {
+                right: 0;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 25px;
+                flex: unset;
+            }
+
+            .auth-buttons {
+                flex-direction: column;
+                width: 100%;
+                align-items: flex-start;
+                flex: unset;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .hero {
+                padding-top: 120px;
+                align-items: center;
+                text-align: center;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .split-section {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .split-section.reverse {
+                display: flex;
+                flex-direction: column-reverse;
+            }
+
+            .arch-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .arch-line {
+                width: 2px;
+                height: 100%;
+                left: 50%;
+                top: 0;
+                transform: translateX(-50%);
+            }
+
+            .robot-card {
+                min-width: 85vw;
+            }
+
+            .carousel-wrapper {
+                padding: 30px 7.5vw;
+                gap: 20px;
+            }
+
+            .timeline-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="logo">NuroTwin</a>
+
+            <div class="nav-menu" id="navMenu">
+                <div class="nav-links">
+                    <a href="#problem">Problem</a>
+                    <a href="#solution">Solution</a>
+                    <a href="#features">Features</a>
+                    <a href="#showcase">Demo</a>
+                </div>
+                <div class="auth-buttons">
+                    <a href="login.html" class="btn btn-ghost">Log-In</a>
+                    <a href="signup.html" class="btn btn-primary">Get Started</a>
+                </div>
+            </div>
+
+            <div class="hamburger" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="hero-content">
+            <h1>Your Health, <br> <span>Re-Imagined</span></h1>
+            <p style="margin-bottom: 30px; max-width: 500px; font-size: 1.1rem;">
+                NuroTwin creates a living 3D mirror of your mind and body
+                Using IoT sensors, we visualize stress, fatigue, and vitals in real-time
+            </p>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: flex-start;">
+                <a href="signup.html" class="btn btn-primary" style="padding: 15px 40px; font-size: 1rem;">Get
+                    Started</a>
+                <a href="https://youtu.be/lWWpyDRU9-8" class="btn btn-ghost"
+                    style="padding: 15px 30px; font-size: 1rem;">Watch Demo <i class="fas fa-play"
+                        style="font-size: 0.8em; margin-left: 5px;"></i></a>
+            </div>
+        </div>
+        <div id="canvas-container"></div>
+    </div>
+
+    <section id="problem">
+        <div class="split-section">
+            <img src="prob1.jpeg" class="split-img" alt="Data Overload">
+            <div class="split-text">
+                <h2 class="problem">The Silent Epidemic</h2>
+                <p>
+                    Modern healthcare is reactive. We wait until we break to fix ourselves
+                    Cognitive burnout is invisible, and traditional numerical data is boring and hard to interpret
+                    emotionally
+                </p>
+                <br>
+                <h4 style="color:#fff; margin-bottom:10px;">Why standard apps fail:</h4>
+                <p>
+                    <i class="fas fa-times" style="color: var(--danger)"></i> Data Overload: Too many numbers, zero
+                    emotional resonance<br>
+                    <i class="fas fa-times" style="color: var(--danger)"></i> Delayed Reaction: Knowing you were
+                    stressed yesterday doesn't help you now<br>
+                    <i class="fas fa-times" style="color: var(--danger)"></i>No Feedback Loop: There is no bridge
+                    between
+                    your vitals and your vision
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="solution" style="background: var(--surface);">
+        <div class="split-section reverse">
+            <div class="split-text">
+                <h2 class="solution">The NuroTwin Approach</h2>
+                <p>
+                    We humanize your data. NuroTwin translates complex physiological signals (Heart Rate, SpO2,
+                    Temperature) into universal emotional expressions
+                </p>
+                <br>
+                <p>
+                    When you are stressed, NuroTwin looks worried. When you are calm, it smiles
+                    This creates an immediate, intuitive feedback loop that encourages healthier habits
+                </p>
+            </div>
+            <img src="NuroTwin Diagram2.drawio.svg" class="split-img" alt="Future Tech">
+        </div>
+    </section>
+
+    <section id="features">
+        <h2 class="section-title"><span>Core Capabilities</span></h2>
+        <div class="features-grid">
+            <div class="feature-box">
+                <i class="fas fa-bolt"></i>
+                <h3>Real-Time Sync</h3>
+                <p>Seamless WebSocket connection between hardware sensors and the digital dashboard</p>
+            </div>
+            <div class="feature-box">
+                <i class="fas fa-heart"></i>
+                <h3>Empathy Engine</h3>
+                <p>Algorithms that translate raw biometric numbers into relatable human emotions</p>
+            </div>
+            <div class="feature-box">
+                <i class="fas fa-chart-line"></i>
+                <h3>Cloud Analytics</h3>
+                <p>Long-term storage and trend analysis to predict cognitive burnout before it happens</p>
+            </div>
+            <div class="feature-box">
+                <i class="fas fa-vr-cardboard"></i>
+                <h3>Cross-Platform</h3>
+                <p>Designed for Desktop, Mobile, and future VR immersive environments</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="architecture" style="background: var(--surface);">
+        <h2 class="section-title"><span>System Architecture</span></h2>
+        <span>
+            <p style="margin-bottom:20px; color: #888; text-align: center ;margin-top:0px ; padding-top: 0rem;">A
+                real-time pipeline that
+                transforms human
+                biometrics into a
+                living digital twin</p>
+        </span>
+        <div class="arch-line"></div>
+        <div class="arch-grid">
+            <div class="arch-card">
+                <i class="fas fa-microchip"></i>
+                <h4>IoT Hardware</h4>
+                <p>High-precision wearable sensors continuously capture raw biometric signals such as heart rate and
+                    oxygen saturation, forming the foundation of the digital twin</p>
+            </div>
+            <div class="arch-card">
+                <i class="fas fa-wifi"></i>
+                <h4>WebSocket</h4>
+                <p>Real-Time Data Streaming
+                    Ultra-low latency WebSocket connections stream structured JSON data instantly, ensuring seamless and
+                    continuous communication between hardware and software</p>
+            </div>
+            <div class="arch-card">
+                <i class="fas fa-code"></i>
+                <h4>Brain Engine</h4>
+                <p>Intelligent Signal Interpretation
+                    Advanced logic processes biometric inputs and converts them into meaningful cognitive and emotional
+                    animation states in real time</p>
+            </div>
+            <div class="arch-card">
+                <i class="fas fa-desktop"></i>
+                <h4>3D Dashboard</h4>
+                <p>Interactive Digital Twin Visualization
+                    Powered by Three.js, the dashboard renders a responsive, lifelike 3D digital twin that reacts
+                    dynamically to live biometric changes</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="showcase" class="robot-showcase">
+        <h2 class="section-title" style="margin-bottom: 20px;"><span>Emotional States</span></h2>
+        <p style="margin-bottom: 40px; color: #888;">NuroTwin reacts dynamically to your biometrics</p>
+
+        <div class="carousel-wrapper" id="carousel">
+            <div class="robot-card active">
+                <video src="State1.mp4" autoplay loop muted playsinline></video>
+                <div class="overlay">
+                    <div>
+                        <div class="label" style="color: #10b981;">HEALTHY</div>
+                        <div class="desc">Calm, floating animation</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="robot-card">
+                <video src="State2.mp4" autoplay loop muted playsinline></video>
+                <div class="overlay">
+                    <div>
+                        <div class="label" style="color: #f59e0b;">STRESSED</div>
+                        <div class="desc">Jittery movements, darting eyes</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="robot-card">
+                <video src="State3.mp4" autoplay loop muted playsinline></video>
+                <div class="overlay">
+                    <div>
+                        <div class="label" style="color: #ef4444;">CRITICAL</div>
+                        <div class="desc">Slumped posture, emergency mode</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="robot-card">
+                <video src="State4.mp4" autoplay loop muted playsinline></video>
+                <div class="overlay">
+                    <div>
+                        <div class="label" style="color: #7c3aed;">ALERT</div>
+                        <div class="desc">Fast head snaps, hyper-vigilant</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="carousel-indicators">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+    </section>
+
+    <section id="future">
+        <h2 class="section-title"><span>Future Roadmap</span></h2>
+        <div class="timeline-grid">
+            <div class="timeline-item">
+                <h3>Phase 1: Wearables</h3>
+                <p>Seamless integration with consumer and medical-grade wearables enables reliable, real-time monitoring
+                    of heart rate and SpO₂</p>
+            </div>
+            <div class="timeline-item">
+                <h3>Phase 2: AI Analytics</h3>
+                <p>Cloud-powered analytics interpret long-term biometric trends, enabling early detection of stress
+                    patterns and potential burnout risks</p>
+            </div>
+            <div class="timeline-item">
+                <h3>Phase 3: VR Integration</h3>
+                <p>A fully immersive VR room where you can interact with your digital twin in a virtual doctor's office
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <h3 style="color:#fff; margin-bottom: 20px;">NuroTwin</h3>
+        <p>&copy; 2025 NuroTwin Health Systems. Engineered for the Future</p>
+    </footer>
+
+    <script>
+        // 1. Mobile Menu Toggle
+        function toggleMenu() {
+            const menu = document.getElementById('navMenu');
+            menu.classList.toggle('active');
+            const icon = document.querySelector('.hamburger i');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-times');
+        }
+
+        // 2. Interactive 3D Background (High Visibility)
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
+        camera.position.z = 5;
+
+        // Big Geometry
+        const geometry = new THREE.IcosahedronGeometry(2.2, 1);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x00F0FF, wireframe: true, transparent: true, opacity: 0.5
+        });
+        const core = new THREE.Mesh(geometry, material);
+        scene.add(core);
+
+        const innerGeo = new THREE.IcosahedronGeometry(1.2, 0);
+        const innerMat = new THREE.MeshBasicMaterial({
+            color: 0x7c3aed, wireframe: true, transparent: true, opacity: 0.8
+        });
+        const innerCore = new THREE.Mesh(innerGeo, innerMat);
+        scene.add(innerCore);
+
+        // Mouse Interaction
+        let mouseX = 0; let mouseY = 0;
+        let targetX = 0; let targetY = 0;
+
+        window.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - window.innerWidth / 2) * 0.001;
+            mouseY = (event.clientY - window.innerHeight / 2) * 0.001;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            targetX = mouseX * 2; targetY = mouseY * 2;
+            core.rotation.y += 0.05 * (targetX - core.rotation.y);
+            core.rotation.x += 0.05 * (targetY - core.rotation.x);
+            core.rotation.z += 0.002;
+            innerCore.rotation.y -= 0.005;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+        });
+
+        // 3. Carousel Logic
+        const carousel = document.getElementById('carousel');
+        const cards = document.querySelectorAll('.robot-card');
+        const dots = document.querySelectorAll('.dot');
+        let activeIndex = 0;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    const index = Array.from(cards).indexOf(entry.target);
+                    dots.forEach(d => d.classList.remove('active'));
+                    if (dots[index]) dots[index].classList.add('active');
+                } else {
+                    entry.target.classList.remove('active');
+                }
+            });
+        }, { root: carousel, threshold: 0.5 });
+
+        cards.forEach(card => observer.observe(card));
+
+        function autoScroll() {
+            activeIndex++;
+            if (activeIndex >= cards.length) activeIndex = 0;
+            carousel.scrollTo({
+                left: cards[activeIndex].offsetLeft - (window.innerWidth / 2) + (cards[activeIndex].offsetWidth / 2),
+                behavior: 'smooth'
+            });
+        }
+        setInterval(autoScroll, 4000);
+
+    </script>
+</body>
+
+</html>

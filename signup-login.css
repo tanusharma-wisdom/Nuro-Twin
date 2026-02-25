@@ -1,0 +1,248 @@
+/* Google Fonts - Poppins */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #000;
+  overflow-x: hidden;
+}
+
+/* --- BACKGROUND ANIMATION --- */
+section {
+  position: absolute;
+  width: 100%; 
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  overflow: hidden;
+  z-index: 1;
+}
+
+section::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(#000, rgb(20, 180, 255), #000);
+  animation: animate 5s linear infinite;
+}
+
+@keyframes animate {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+section span {
+  position: relative;
+  display: block;
+  width: calc(6.25vw - 2px);
+  height: calc(6.25vw - 2px);
+  background: #181818;
+  z-index: 2;
+  transition: 1.5s;
+}
+
+section span:hover {
+  background: rgb(20, 180, 255);
+  transition: 0s;
+}
+
+/* --- FORM CONTAINER --- */
+.container {
+  position: relative;
+  z-index: 100;
+  
+  /* DESKTOP SETTINGS */
+  width: 400px;       
+  padding: 25px;
+  border-radius: 8px;
+  background: #222;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.9);
+}
+
+.container header {
+  font-size: 25px;
+  font-weight: 600;
+  text-align: center;
+  color: #00d5ff;
+  margin-bottom: 20px;
+}
+
+.container form {
+  margin-top: 10px;
+}
+
+form .field {
+  margin-bottom: 20px;
+}
+
+form .input-field {
+  position: relative;
+  height: 50px;
+  width: 100%;
+  color: white;
+}
+
+.input-field input {
+  height: 100%;
+  width: 100%;
+  outline: none;
+  border: none;
+  border-radius: 8px;
+  padding: 0 15px;
+  font-size: 15px;
+  background: #333;
+  color: white;
+  border: 1.5px solid #00b4f6;
+  transition: all 0.3s ease;
+}
+
+.input-field input:focus {
+  border-color: #fff;
+  box-shadow: 0 0 8px rgba(0, 213, 255, 0.3);
+}
+
+.invalid input {
+  border-color: #ff0000;
+}
+
+.input-field .show-hide {
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 3px;
+}
+
+.field .error {
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
+  color: #ff0000;
+  font-size: 13px;
+  display: none;
+}
+
+.invalid .error {
+  display: flex;
+}
+
+.error .error-icon {
+  margin-right: 6px;
+  font-size: 15px;
+}
+
+.create-password .error {
+  align-items: flex-start;
+}
+
+.create-password .error-icon {
+  margin-top: 4px;
+}
+
+/* --- LINKS & BUTTONS --- */
+.button {
+  margin: 25px 0 6px;
+}
+
+form .links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+form .links a {
+  color: #fff;
+  text-decoration: none; 
+  font-size: 14px;
+}
+
+form .links a:hover {
+  text-decoration: underline;
+}
+
+#login, #sign-up, #forgot-pass {
+  color: rgb(20, 180, 255);
+  font-weight: 600;
+}
+
+.button input {
+  color: black;
+  font-size: 18px;
+  font-weight: 600;
+  background-color: rgb(20, 180, 255);
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.button input:hover {
+  background-color: rgb(70, 86, 255);
+  color: white;
+}
+
+.button input:active {
+  transform: scale(0.98);
+}
+
+
+/* --- RESPONSIVE MEDIA QUERIES --- */
+
+@media (max-width: 900px) {
+  section span {
+    width: calc(10vw - 2px);
+    height: calc(10vw - 2px);
+  }
+}
+
+/* --- MOBILE FIX (Screens smaller than 500px) --- */
+@media (max-width: 500px) {
+  section span {
+    width: calc(20vw - 2px);
+    height: calc(20vw - 2px);
+  }
+
+  /* FORCE FULL WIDTH
+     This ensures we use 100% of the screen width 
+     instead of shrinking to 90%.
+  */
+  .container {
+    width: 100%;       
+    max-width: 100%;
+    
+    /* Reduce padding to give inputs more room */
+    padding: 15px; 
+    
+    /* Optional: Remove border-radius for cleaner mobile look */
+    border-radius: 0; 
+  }
+
+  .container header {
+    font-size: 22px;
+  }
+  
+  /* Ensure text doesn't look huge inside small inputs */
+  .input-field input {
+    font-size: 16px; /* 16px prevents zoom-in on iPhone */
+  }
+  
+  .error-text {
+    font-size: 12px;
+  }
+}
